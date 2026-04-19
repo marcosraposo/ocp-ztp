@@ -1,0 +1,18 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: deploy-standalone-cluster
+  namespace: openshift-gitops
+spec:
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: opp-nprod
+  project: default
+  source:
+    path: clusters/opp-nprod
+    repoURL: https://github.com/marcosraposo/ocp-ztp
+    targetRevision: main
+  syncPolicy:
+    automated:
+      selfHeal: true
+      prune: true
