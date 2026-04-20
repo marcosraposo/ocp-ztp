@@ -1,131 +1,157 @@
-apiVersion: ran.openshift.io/v1
-kind: SiteConfig
+apiVersion: siteconfig.open-cluster-management.io/v1alpha1
+kind: ClusterInstance
 metadata:
-  name: "nprod-site-config"
+  name: "nprod"
   namespace: "opp-nprod"
+  annotations:
+    ztp-deploy: "true"
 spec:
   baseDomain: "malima.rhbr-lab.com"
+  clusterName: "nprod"
   pullSecretRef:
     name: "assisted-installer-pull-secret"
   clusterImageSetNameRef: "img4.20.0-x86-64-appsub"
-  sshPublicKey: "ssh-rsa AAAA..." # Substitua pela sua chave pública
-  clusters:
-    - clusterName: "nprod"
-      networkType: "OVNKubernetes"
-      installConfigOverrides: |
-        {
-          "capabilities": {
-            "baselineCapabilitySet": "None",
-            "additionalEnabledCapabilities": [
-              "NodeTuning",
-              "OperatorLifecycleManager",
-              "Ingress"
-            ]
-          },
-          "controlPlane": { "replicas": 3 },
-          "compute": [ { "replicas": 0 } ]
-        }
-      clusterLabels:
-        du-profile: "latest"
-        common: true
-        sites: "nprod"
-      clusterNetwork:
-        - cidr: 10.128.0.0/14
-          hostPrefix: 23
-      serviceNetwork:
-        - 172.30.0.0/16
-      machineNetwork:
-        - cidr: 10.36.0.0/16
-      nodes:
-        # --- MASTER 01 ---
-        - hostName: "master01.nprod.malima.rhbr-lab.com"
-          role: "master"
-          bmcAddress: "virt-it+https://api.malima.rhbr-lab.com:6443"
-          bmcCredentialsName:
-            name: "bmc-secret-standalone"
-          bootMACAddress: "02:00:00:00:00:01"
-          nodeNetwork:
-            interfaces:
-              - name: eth0
-                macAddress: "02:00:00:00:00:01"
-            config:
-              interfaces:
-                - name: eth0
-                  type: ethernet
-                  state: up
-                  ipv4:
-                    enabled: true
-                    address:
-                      - ip: 10.36.41.82
-                        prefix-length: 16
-              dns-resolver:
-                config:
-                  server:
-                    - 10.36.41.51
-              routes:
-                config:
-                  - destination: 0.0.0.0/0
-                    next-hop-address: 10.36.64.243
-                    next-hop-interface: eth0
+  sshPublicKey: "ssh-rsa AAAA..." # Adicione sua chave aqui
+  networkType: "OVNKubernetes"
+  
+  # Otimização de recursos para Lab
+  installConfigOverrides: |
+    {
+      "capabilities": {
+        "baselineCapabilitySet": "None",
+        "additionalEnabledCapabilities": [
+          "NodeTuning",
+          "OperatorLifecycleManager",
+          "Ingress"
+        ]
+      },
+      "controlPlane": { "replicas": 3 },
+      "compute": [ { "replicas": 0 } ]
+    }
 
-        # --- MASTER 02 ---
-        - hostName: "master02.nprod.malima.rhbr-lab.com"
-          role: "master"
-          bmcAddress: "virt-it+https://api.malima.rhbr-lab.com:6443"
-          bmcCredentialsName:
-            name: "bmc-secret-standalone"
-          bootMACAddress: "02:00:00:00:00:02"
-          nodeNetwork:
-            interfaces:
-              - name: eth0
-                macAddress: "02:00:00:00:00:02"
-            config:
-              interfaces:
-                - name: eth0
-                  type: ethernet
-                  state: up
-                  ipv4:
-                    enabled: true
-                    address:
-                      - ip: 10.36.41.83
-                        prefix-length: 16
-              dns-resolver:
-                config:
-                  server:
-                    - 10.36.41.51
-              routes:
-                config:
-                  - destination: 0.0.0.0/0
-                    next-hop-address: 10.36.64.243
-                    next-hop-interface: eth0
+  # Labels para integração com as políticas do ACM (TALM)
+  extraLabels:
+    ManagedCluster:
+      du-profile: "latest"
+      common: "true"
+      sites: "nprod"
 
-        # --- MASTER 03 ---
-        - hostName: "master03.nprod.malima.rhbr-lab.com"
-          role: "master"
-          bmcAddress: "virt-it+https://api.malima.rhbr-lab.com:6443"
-          bmcCredentialsName:
-            name: "bmc-secret-standalone"
-          bootMACAddress: "02:00:00:00:00:03"
-          nodeNetwork:
-            interfaces:
-              - name: eth0
-                macAddress: "02:00:00:00:00:03"
+  # Configurações de Rede IPv4 (conforme sua rede 10.36.x.x)
+  clusterNetwork:
+    - cidr: 10.128.0.0/14
+      hostPrefix: 23
+  machineNetwork:
+    - cidr: 10.36.0.0/16
+  serviceNetwork:
+    - cidr: 172.30.0.0/16
+
+  # Template global do Cluster
+  templateRefs:
+    - name: ai-cluster-templates-v1
+      namespace: open-cluster-management
+
+  nodes:
+    # --- MASTER 01 ---
+    - hostName: "master01.nprod.malima.rhbr-lab.com"
+      role: "master"
+      bmcAddress: "virt-it+https://api.malima.rhbr-lab.com:6443"
+      bmcCredentialsName:
+        name: "bmc-secret-standalone"
+      bootMACAddress: "02:00:00:00:00:01"
+      bootMode: "UEFI" # Ajustado para VMs
+      nodeNetwork:
+        interfaces:
+          - name: eth0
+            macAddress: "02:00:00:00:00:01"
+        config:
+          interfaces:
+            - name: eth0
+              type: ethernet
+              state: up
+              ipv4:
+                enabled: true
+                address:
+                  - ip: 10.36.41.82
+                    prefix-length: 16
+          dns-resolver:
             config:
-              interfaces:
-                - name: eth0
-                  type: ethernet
-                  state: up
-                  ipv4:
-                    enabled: true
-                    address:
-                      - ip: 10.36.41.84
-                        prefix-length: 16
-              dns-resolver:
-                config:
-                  server:
-                    - 10.36.41.51
-              routes:
-                config:
-                  - destination: 0.0.0.0/0
-                    next-hop-address: 10.36.64.243
-                    next-hop-interface: eth0
+              server:
+                - 10.36.41.51
+          routes:
+            config:
+              - destination: 0.0.0.0/0
+                next-hop-address: 10.36.64.243
+                next-hop-interface: eth0
+      templateRefs:
+        - name: ai-node-templates-v1
+          namespace: open-cluster-management
+
+    # --- MASTER 02 ---
+    - hostName: "master02.nprod.malima.rhbr-lab.com"
+      role: "master"
+      bmcAddress: "virt-it+https://api.malima.rhbr-lab.com:6443"
+      bmcCredentialsName:
+        name: "bmc-secret-standalone"
+      bootMACAddress: "02:00:00:00:00:02"
+      bootMode: "UEFI"
+      nodeNetwork:
+        interfaces:
+          - name: eth0
+            macAddress: "02:00:00:00:00:02"
+        config:
+          interfaces:
+            - name: eth0
+              type: ethernet
+              state: up
+              ipv4:
+                enabled: true
+                address:
+                  - ip: 10.36.41.83
+                    prefix-length: 16
+          dns-resolver:
+            config:
+              server:
+                - 10.36.41.51
+          routes:
+            config:
+              - destination: 0.0.0.0/0
+                next-hop-address: 10.36.64.243
+                next-hop-interface: eth0
+      templateRefs:
+        - name: ai-node-templates-v1
+          namespace: open-cluster-management
+
+    # --- MASTER 03 ---
+    - hostName: "master03.nprod.malima.rhbr-lab.com"
+      role: "master"
+      bmcAddress: "virt-it+https://api.malima.rhbr-lab.com:6443"
+      bmcCredentialsName:
+        name: "bmc-secret-standalone"
+      bootMACAddress: "02:00:00:00:00:03"
+      bootMode: "UEFI"
+      nodeNetwork:
+        interfaces:
+          - name: eth0
+            macAddress: "02:00:00:00:00:03"
+        config:
+          interfaces:
+            - name: eth0
+              type: ethernet
+              state: up
+              ipv4:
+                enabled: true
+                address:
+                  - ip: 10.36.41.84
+                    prefix-length: 16
+          dns-resolver:
+            config:
+              server:
+                - 10.36.41.51
+          routes:
+            config:
+              - destination: 0.0.0.0/0
+                next-hop-address: 10.36.64.243
+                next-hop-interface: eth0
+      templateRefs:
+        - name: ai-node-templates-v1
+          namespace: open-cluster-management
