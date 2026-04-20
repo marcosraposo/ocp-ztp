@@ -48,8 +48,7 @@ spec:
   # Template global do Cluster
   templateRefs:
     - name: ai-cluster-templates-v1
-      namespace: multicluster-engine
-
+      namespace: openshift-operators
   nodes:
     # --- MASTER 01 ---
     - hostName: "master01.nprod.malima.rhbr-lab.com"
@@ -84,7 +83,7 @@ spec:
                 next-hop-interface: eth0
       templateRefs:
         - name: ai-node-templates-v1
-          namespace: multicluster-engine
+          namespace: openshift-operators
 
     # --- MASTER 02 ---
     - hostName: "master02.nprod.malima.rhbr-lab.com"
@@ -119,7 +118,7 @@ spec:
                 next-hop-interface: eth0
       templateRefs:
         - name: ai-node-templates-v1
-          namespace: multicluster-engine
+          namespace: openshift-operators
 
     # --- MASTER 03 ---
     - hostName: "master03.nprod.malima.rhbr-lab.com"
@@ -154,4 +153,4 @@ spec:
                 next-hop-interface: eth0
       templateRefs:
         - name: ai-node-templates-v1
-          namespace: multicluster-engine
+          namespace: openshift-operators
