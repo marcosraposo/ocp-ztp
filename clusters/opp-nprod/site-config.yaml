@@ -48,7 +48,7 @@ spec:
   # Template global do Cluster
   templateRefs:
     - name: ai-cluster-templates-v1
-      namespace: open-cluster-management
+      namespace: multicluster-engine
 
   nodes:
     # --- MASTER 01 ---
@@ -84,7 +84,7 @@ spec:
                 next-hop-interface: eth0
       templateRefs:
         - name: ai-node-templates-v1
-          namespace: open-cluster-management
+          namespace: multicluster-engine
 
     # --- MASTER 02 ---
     - hostName: "master02.nprod.malima.rhbr-lab.com"
@@ -119,7 +119,7 @@ spec:
                 next-hop-interface: eth0
       templateRefs:
         - name: ai-node-templates-v1
-          namespace: open-cluster-management
+          namespace: multicluster-engine
 
     # --- MASTER 03 ---
     - hostName: "master03.nprod.malima.rhbr-lab.com"
@@ -154,4 +154,4 @@ spec:
                 next-hop-interface: eth0
       templateRefs:
         - name: ai-node-templates-v1
-          namespace: open-cluster-management
+          namespace: multicluster-engine
