@@ -4,21 +4,37 @@ metadata:
   name: "lab-virt-standalone"
   namespace: "opp-nprod"
   annotations:
-    # Esta anotação ajuda o TALM a identificar o processo
     ztp-deploy: "true"
 spec:
+  clusterName: "standalone-cluster"
+  baseDomain: "rhbr-lab.com"
   pullSecretRef:
     name: "assisted-installer-pull-secret"
   clusterImageSetNameRef: "img4.20.0-x86-64-appsub"
-  clusterName: "standalone-cluster"
-  baseDomain: "rhbr-lab.com"
   networkType: "OVNKubernetes"
+  
+  # Templates obrigatórios para o ZTP v2 (MCE/ACM)
+  templateRefs:
+    - name: "assisted-installer-template"
+      kind: "ConfigMap"
+      namespace: "multicluster-engine"
+    - name: "agent-cluster-install-template"
+      kind: "ConfigMap"
+      namespace: "multicluster-engine"
+
   clusterLabels:
     cloud: "OpenShiftVirt"
     vendor: "OpenShift"
+    env: "nprod"
+
   nodes:
+    # --- MASTER 0 ---
     - hostName: "master-0.standalone.com"
       role: "master"
+      templateRefs:
+        - name: "bmh-template"
+          kind: "ConfigMap"
+          namespace: "multicluster-engine"
       bmcAddress: "virt-it+https://api.malima.rhbr-lab.com:6443" 
       bmcCredentialsName:
         name: "bmc-secret-standalone"
@@ -46,9 +62,40 @@ spec:
             config:
               server:
                 - 10.36.41.51 
-    # Replicar para master-1 e master-2 (IDs 02 e 03) conforme os exemplos anteriores...
-  installConfigOverrides: |
-    {
-      "controlPlane": { "replicas": 3 },
-      "compute": [ { "replicas": 0 } ]
-    }
+
+    # --- MASTER 1 ---
+    - hostName: "master-1.standalone.com"
+      role: "master"
+      templateRefs:
+        - name: "bmh-template"
+          kind: "ConfigMap"
+          namespace: "multicluster-engine"
+      bmcAddress: "virt-it+https://api.malima.rhbr-lab.com:6443" 
+      bmcCredentialsName:
+        name: "bmc-secret-standalone"
+      bootMACAddress: "02:00:00:00:00:02" 
+      nodeNetwork:
+        interfaces:
+          - name: eth0
+            macAddress: "02:00:00:00:00:02"
+        config:
+          interfaces:
+            - name: eth0
+              type: ethernet
+              state: up
+              ipv4:
+                enabled: true
+                address:
+                  - ip: 10.36.41.83
+                    prefix-length: 16
+          routes:
+            config:
+              - destination: 0.0.0.0/0
+                next-hop-address: 10.36.64.243
+                next-hop-interface: eth0
+          dns-resolver:
+            config:
+              server:
+                - 10.36.41.51                       
+
+    # --- MASTER
