@@ -1,0 +1,5 @@
+instalar o acm
+gitops
+mce 
+ativar ztp 
+oc patch multiclusterengine multiclusterengine --type=merge -p '{"spec":{"overrides":{"components":[{"name":"infrastructure-operator","enabled":true}]}}}'

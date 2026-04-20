@@ -1,22 +1,25 @@
-apiVersion: agent-install.openshift.io/v1beta1
+apiVersion: siteconfig.open-cluster-management.io/v1alpha1
 kind: SiteConfig
 metadata:
-  name: "opp-prod-standalone"
+  name: "lab-virt-standalone"
   namespace: "opp-nprod"
 spec:
   pullSecretRef:
     name: "assisted-installer-pull-secret"
-  clusterImageSetNameRef: "img4.20.0-x86-64-appsub" 
+  clusterImageSetNameRef: "img4.20.0-x86-64-appsub"
   clusters:
     - clusterName: "standalone-cluster"
       networkType: "OVNKubernetes"
+      # Labels para o ACM identificar o novo cluster
       clusterLabels:
         cloud: "OpenShiftVirt"
         vendor: "OpenShift"
+        env: "nprod"
       nodes:
         # --- NÓ MASTER 0 ---
         - hostName: "master-0.standalone.com"
           role: "master"
+          # Endpoint do KubeVirt no seu Bare Metal
           bmcAddress: "virt-it+https://api.malima.rhbr-lab.com:6443" 
           bmcCredentialsName:
             name: "bmc-secret-standalone"
@@ -69,46 +72,4 @@ spec:
               routes:
                 config:
                   - destination: 0.0.0.0/0
-                    next-hop-address: 10.36.64.243
-                    next-hop-interface: eth0
-              dns-resolver:
-                config:
-                  server:
-                    - 10.36.41.51                       
-
-        # --- NÓ MASTER 2 ---
-        - hostName: "master-2.standalone.com"
-          role: "master"
-          bmcAddress: "virt-it+https://api.malima.rhbr-lab.com:6443" 
-          bmcCredentialsName:
-            name: "bmc-secret-standalone"
-          bootMACAddress: "02:00:00:00:00:03" 
-          nodeNetwork:
-            interfaces:
-              - name: eth0
-                macAddress: "02:00:00:00:00:03"
-            config:
-              interfaces:
-                - name: eth0
-                  type: ethernet
-                  state: up
-                  ipv4:
-                    enabled: true
-                    address:
-                      - ip: 10.36.41.84
-                        prefix-length: 16
-              routes:
-                config:
-                  - destination: 0.0.0.0/0
-                    next-hop-address: 10.36.64.243
-                    next-hop-interface: eth0
-              dns-resolver:
-                config:
-                  server:
-                    - 10.36.41.51                                  
-     
-      installConfigOverrides: |
-        {
-          "controlPlane": { "replicas": 3 },
-          "compute": [ { "replicas": 0 } ]
-        }
+                    next-hop-address: 1
