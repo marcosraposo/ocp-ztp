@@ -1,0 +1,44 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ai-cluster-templates-v1
+  namespace: openshift-operators
+data:
+  AgentClusterInstall: |
+    apiVersion: extensions.hive.openshift.io/v1beta1
+    kind: AgentClusterInstall
+    metadata:
+      name: "{{ .Spec.ClusterName }}"
+      namespace: "{{ .ClusterNamespace }}"
+    spec:
+      clusterDeploymentRef:
+        name: "{{ .Spec.ClusterName }}"
+      imageSetRef:
+        name: "{{ .Spec.ClusterImageSetNameRef }}"
+      networking:
+        clusterNetwork: {{ .Spec.ClusterNetwork | toYaml | nindent 8 }}
+        serviceNetwork: {{ .Spec.ServiceNetwork | toYaml | nindent 8 }}
+      provisionRequirements:
+        controlPlaneAgents: 3
+        workerAgents: 0
+  ClusterDeployment: |
+    apiVersion: hive.openshift.io/v1
+    kind: ClusterDeployment
+    metadata:
+      name: "{{ .Spec.ClusterName }}"
+      namespace: "{{ .ClusterNamespace }}"
+    spec:
+      baseDomain: "{{ .Spec.BaseDomain }}"
+      clusterName: "{{ .Spec.ClusterName }}"
+      pullSecretRef:
+        name: "{{ .Spec.PullSecretRef.Name }}"
+      clusterInstallRef:
+        group: extensions.hive.openshift.io
+        kind: AgentClusterInstall
+        name: "{{ .Spec.ClusterName }}"
+        version: v1beta1
+      platform:
+        agentBareMetal:
+          agentSelector:
+            matchLabels:
+              cluster-name: "{{ .Spec.ClusterName }}"

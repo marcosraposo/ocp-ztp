@@ -4,22 +4,18 @@ metadata:
   name: "nprod"
   namespace: "opp-nprod"
   labels:
-    # Label necessária para indexação do SiteConfig
     siteconfig.open-cluster-management.io/v1alpha1: ""
   annotations:
-    # Gatilho para o TALM iniciar o deploy
     ztp-deploy: "true"
 spec:
   clusterName: "nprod"
   baseDomain: "malima.rhbr-lab.com"
   pullSecretRef:
-    # O segredo que acabamos de criar no namespace opp-nprod
     name: "assisted-installer-pull-secret"
   clusterImageSetNameRef: "img4.20.0-x86-64-appsub"
-  sshPublicKey: "ssh-rsa AAAA..." # Sua chave SSH pública real aqui
+  sshPublicKey: "ssh-rsa AAAA..." # Substitua pela sua chave real
   networkType: "OVNKubernetes"
   
-  # Definições de Rede do Cluster
   clusterNetwork:
     - cidr: 10.128.0.0/14
       hostPrefix: 23
@@ -28,21 +24,10 @@ spec:
   machineNetwork:
     - cidr: 10.36.0.0/16
 
-  # Referência ao Template Global do Cluster
   templateRefs:
     - name: ai-cluster-templates-v1
-      namespace: openshift-operators # Local onde garantimos acesso ao TALM
+      namespace: opp-nprod
 
-  # Configurações específicas de instalação
-  installConfigOverrides: |
-    {
-      "capabilities": {
-        "baselineCapabilitySet": "None",
-        "additionalEnabledCapabilities": ["NodeTuning", "OperatorLifecycleManager", "Ingress"]
-      }
-    }
-
-  # Definição dos Nós (Masters)
   nodes:
     - hostName: "master01.nprod.malima.rhbr-lab.com"
       role: "master"
