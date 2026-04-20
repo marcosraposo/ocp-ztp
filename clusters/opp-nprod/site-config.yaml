@@ -1,13 +1,13 @@
 apiVersion: siteconfig.open-cluster-management.io/v1alpha1
 kind: ClusterInstance
 metadata:
-  name: "lab-virt-standalone"
+  name: "opp-nprod-standalone"
   namespace: "opp-nprod"
   annotations:
     ztp-deploy: "true"
 spec:
-  clusterName: "standalone-cluster"
-  baseDomain: "rhbr-lab.com"
+  clusterName: "nprod"
+  baseDomain: "malima.rhbr-lab.com"
   pullSecretRef:
     name: "assisted-installer-pull-secret"
   clusterImageSetNameRef: "img4.20.0-x86-64-appsub"
@@ -29,7 +29,7 @@ spec:
 
   nodes:
     # --- MASTER 0 ---
-    - hostName: "master-0.standalone.com"
+    - hostName: "master01.nprod.malima.rhbr-lab.com"
       role: "master"
       templateRefs:
         - name: "bmh-template"
@@ -64,7 +64,7 @@ spec:
                 - 10.36.41.51 
 
     # --- MASTER 1 ---
-    - hostName: "master-1.standalone.com"
+    - hostName: "master02.nprod.malima.rhbr-lab.com"
       role: "master"
       templateRefs:
         - name: "bmh-template"
@@ -97,5 +97,41 @@ spec:
             config:
               server:
                 - 10.36.41.51                       
+
+    # --- MASTER 1 ---
+    - hostName: "master03.nprod.malima.rhbr-lab.com"
+      role: "master"
+      templateRefs:
+        - name: "bmh-template"
+          kind: "ConfigMap"
+          namespace: "multicluster-engine"
+      bmcAddress: "virt-it+https://api.malima.rhbr-lab.com:6443" 
+      bmcCredentialsName:
+        name: "bmc-secret-standalone"
+      bootMACAddress: "02:00:00:00:00:02" 
+      nodeNetwork:
+        interfaces:
+          - name: eth0
+            macAddress: "02:00:00:00:00:02"
+        config:
+          interfaces:
+            - name: eth0
+              type: ethernet
+              state: up
+              ipv4:
+                enabled: true
+                address:
+                  - ip: 10.36.41.84
+                    prefix-length: 16
+          routes:
+            config:
+              - destination: 0.0.0.0/0
+                next-hop-address: 10.36.64.243
+                next-hop-interface: eth0
+          dns-resolver:
+            config:
+              server:
+                - 10.36.41.51                       
+
 
     # --- MASTER
